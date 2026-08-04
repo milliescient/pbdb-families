@@ -3,10 +3,12 @@
 ### The question is whether lambda_a contracts away from its prior on a real record, so the
 ### prior is deliberately wide and every rate shares it. Contraction is read against RSD.
 ###
-### Set before sourcing: DATA, OUT, PRESENT, MAXFA, GENS. Optional: RSD, PRINTGEN.
+### Set before sourcing: DATA, OUT, PRESENT, MAXFA, GENS. Optional: RSD, PRINTGEN, BURNFRAC.
 
 if (!exists("RSD")) RSD = 1.0
 if (!exists("PRINTGEN")) PRINTGEN = GENS / 2000
+# burnin is GENS/BURNFRAC. Raise it for a chain still climbing at the end of its burnin.
+if (!exists("BURNFRAC")) BURNFRAC = 20
 
 taxa <- readTaxonData(DATA)
 
@@ -60,6 +62,6 @@ monitors = VectorMonitors()
 monitors.append( mnModel(filename=OUT, printgen=PRINTGEN) )
 monitors.append( mnScreen(printgen=1000000) )
 mymcmc = mcmc(mymodel, monitors, moves, moveschedule="single")
-mymcmc.burnin(generations=GENS/20, tuningInterval=200)
+mymcmc.burnin(generations=GENS/BURNFRAC, tuningInterval=200)
 mymcmc.run(generations=GENS)
 q()

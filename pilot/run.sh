@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-# Fit every family in sample.tsv, in parallel. Resumable: a family whose log already has the
-# full sample count is skipped, so an interrupted run is restarted by rerunning this.
+# Fit every family in a sample table, in parallel. Resumable: a family whose log already has
+# the full sample count is skipped, so an interrupted run is restarted by rerunning this.
+# Refitting a family therefore means moving its log aside first.
 #
-#   bash run.sh [GENS] [NCORES]
+#   bash run.sh [GENS] [NCORES] [SAMPLE]
 set -u
 HERE=$(cd "$(dirname "$0")" && pwd)
 GENS=${1:-40000000}
 NCORES=${2:-20}
+SAMPLE=${3:-$HERE/sample.tsv}
+BURNFRAC=${BURNFRAC:-20}
 PRINTGEN=$((GENS / 2000))
 RB=${RB:-/research/phyloworks/revbayes/projects/cmake/build-reporting/rb}
 OUT=$HERE/output
@@ -26,6 +29,7 @@ PRESENT = $young
 MAXFA   = $old
 GENS = $GENS
 PRINTGEN = $PRINTGEN
+BURNFRAC = $BURNFRAC
 source("$HERE/fit.Rev")
 EOF
   if ! "$RB" "$AUX/$fam.Rev" < /dev/null > "$AUX/$fam.out" 2>&1; then
@@ -33,11 +37,12 @@ EOF
   fi
 }
 export -f fit_one
-export OUT AUX HERE RB GENS PRINTGEN
+export OUT AUX HERE RB GENS PRINTGEN BURNFRAC
 
-echo "fitting $(($(wc -l < "$HERE/sample.tsv") - 1)) families, $GENS generations, $NCORES cores"
+echo "fitting $(($(wc -l < "$SAMPLE") - 1)) families from $(basename "$SAMPLE"), \
+$GENS generations, burnin GENS/$BURNFRAC, $NCORES cores"
 # largest first, so the long tail is not left running alone at the end
-tail -n +2 "$HERE/sample.tsv" | sort -t$'\t' -k2,2nr \
+tail -n +2 "$SAMPLE" | sort -t$'\t' -k2,2nr \
   | awk -F'\t' '{print $1, $5, $6}' \
   | xargs -P "$NCORES" -n 3 bash -c 'fit_one "$@"' _
 echo "done, $(wc -l < "$HERE/failures.log") failures"

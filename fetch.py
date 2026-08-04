@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Every PBDB family with a species-level fossil record, as RevBayes taxon tables.
 
-    python3 fetch.py              # download what is missing, then build
+    python3 fetch.py              # download what is missing, then build every family
     python3 fetch.py --build      # rebuild the tables from what is already downloaded
-    python3 fetch.py --min-species 20
+    python3 fetch.py --min-species 20     # only families big enough to fit on their own
 
 Three bulk queries, not one per family: PBDB streams a whole result set far more cheaply
 than it answers fifteen thousand small questions, and the grouping is local anyway.
@@ -130,8 +130,10 @@ def build(min_species):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--build", action="store_true", help="skip the downloads")
-    ap.add_argument("--min-species", type=int, default=10,
-                    help="species a family needs to be written out (default 10)")
+    # every family that can have a table gets one, and index.tsv is where an analysis
+    # picks a size class. A floor here would decide that question for it.
+    ap.add_argument("--min-species", type=int, default=1,
+                    help="species a family needs to be written out (default 1, meaning all)")
     args = ap.parse_args()
 
     if not args.build:

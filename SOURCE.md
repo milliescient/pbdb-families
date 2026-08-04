@@ -6,9 +6,14 @@ model can estimate from one clade, and what only a pool of clades can.
 
 Nothing downloaded or derived is tracked. `fetch.py` brings all of it back:
 
-    python3 fetch.py                     # download, then build
+    python3 fetch.py                     # download, then build every family
     python3 fetch.py --build             # rebuild from raw/ without downloading
-    python3 fetch.py --min-species 20    # a stricter floor on family size
+    python3 fetch.py --min-species 20    # only the families big enough to fit alone
+
+Every family with a species-level record gets a table, all 9167 of them, down to the ones
+with a single species. Which families are worth fitting is a question for the analysis, and
+`index.tsv` carries the counts to answer it, so putting a floor in the extraction would
+decide it too early and invisibly.
 
 ## What it fetches
 
@@ -35,7 +40,13 @@ extant list and `extinct` otherwise, which is a claim about the species rather t
 inference from its youngest occurrence reaching the present.
 
 `index.tsv` lists every family written, with its species, occurrence and extant-species
-counts, and is the fastest way to pick a size class to work on.
+counts, and is the fastest way to pick a size class to work on. The distribution is steep:
+687 families carry 50 or more species, 1064 carry 20 to 49, 1221 carry 10 to 19, and 4613
+carry four or fewer.
+
+Of PBDB's 15177 families, 11711 have an occurrence of some kind and 9167 have one
+identified to species. The rest are recorded only to genus or coarser, so they cannot
+produce a species-level table and do not appear here.
 
 ## Two things to know before using this
 

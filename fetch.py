@@ -72,7 +72,10 @@ def build(min_species):
         for r in csv.DictReader(fh, delimiter="\t"):
             nrow += 1
             fam, name = r["family"], r["accepted_name"]
-            if r["accepted_rank"] != "species" or not fam or not name:
+            # PBDB buckets everything classified above family level under a placeholder,
+            # which would otherwise come out as the largest family in the database
+            if (r["accepted_rank"] != "species" or not fam or not name
+                    or fam.endswith("_SPECIFIED")):
                 nskip += 1
                 continue
             try:

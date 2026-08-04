@@ -1,0 +1,7 @@
+# bulk downloads, brought back by fetch.py
+raw/
+
+# per-family tables, built from raw/ by fetch.py
+taxa/
+index.tsv
+manifest.tsv

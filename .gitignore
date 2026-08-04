@@ -5,3 +5,8 @@ raw/
 taxa/
 index.tsv
 manifest.tsv
+
+# pilot fits and their drivers, made by pilot/run.sh
+pilot/output/
+pilot/aux/
+pilot/failures.log

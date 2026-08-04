@@ -1,0 +1,65 @@
+### One PBDB family under dnFBDSP with anagenesis, reporting estimated.
+###
+### The question is whether lambda_a contracts away from its prior on a real record, so the
+### prior is deliberately wide and every rate shares it. Contraction is read against RSD.
+###
+### Set before sourcing: DATA, OUT, PRESENT, MAXFA, GENS. Optional: RSD, PRINTGEN.
+
+if (!exists("RSD")) RSD = 1.0
+if (!exists("PRINTGEN")) PRINTGEN = GENS / 2000
+
+taxa <- readTaxonData(DATA)
+
+# constant rates: these clades are single stages to a few stages long, too short to
+# identify a skyline, and a skyline would spend the pilot's power on nuisance structure
+lambda   ~ dnLognormal(-2.0, RSD)
+mu       ~ dnLognormal(-2.0, RSD)
+psi      ~ dnLognormal(-2.0, RSD)
+lambda_a ~ dnLognormal(-2.0, RSD)
+
+moves = VectorMoves()
+moves.append( mvScale(lambda,   weight=3) )
+moves.append( mvScale(mu,       weight=3) )
+moves.append( mvScale(psi,      weight=3) )
+moves.append( mvScale(lambda_a, weight=5) )
+
+# the origin is bounded below by the oldest reported bin floor, which the data fixes, and
+# above only by a scale the data sets, following PyRate's data-scaled exponential
+origin ~ dnExponential(1/MAXFA, offset=MAXFA)
+moves.append( mvScale(origin, weight=3) )
+
+# the record is truncated at the youngest occurrence, so nothing survives to it and rho is
+# zero. present carries the truncation, so the ages stay absolute.
+tr ~ dnFBDSP(origin=origin, lambda=lambda, mu=mu, psi=psi, rho=0.0, present=PRESENT,
+             condition="time", taxa=taxa, lambda_a=lambda_a, extended=false)
+
+# half of PBDB's species are singletons and the occurrence counts are overdispersed, so
+# assuming a complete record would push that misfit into psi, which lambda_a is fitted with
+reporting ~ dnBeta(1.0, 1.0)
+moves.append( mvSlide(reporting, delta=0.1, weight=5) )
+moves.append( mvBetaProbability(reporting, delta=2.0, weight=5) )
+
+rec ~ dnFossilRecord(ranges=tr, reporting=reporting)
+rec.clamp(taxa)
+
+moves.append( mvFossilTipTimeUniform(tr, origin=origin, weight=taxa.size()) )
+moves.append( mvCollapseExpandFossilBranch(tr, origin, weight=2*taxa.size()) )
+if (taxa.size() > 1) {
+    moves.append( mvFNPR(tr, weight=taxa.size()) )
+    moves.append( mvNarrow(tr, weight=taxa.size()) )
+    moves.append( mvRotateNode(tr, weight=taxa.size()) )
+    moves.append( mvNodeTimeSlideUniform(tr, weight=taxa.size()) )
+    moves.append( mvRootTimeSlideUniform(tr, origin, weight=2) )
+}
+moves.append( mvStratigraphicRange(tr, weight=taxa.size()) )
+
+nsa := tr.numSampledAncestors()
+
+mymodel = model(tr)
+monitors = VectorMonitors()
+monitors.append( mnModel(filename=OUT, printgen=PRINTGEN) )
+monitors.append( mnScreen(printgen=1000000) )
+mymcmc = mcmc(mymodel, monitors, moves, moveschedule="single")
+mymcmc.burnin(generations=GENS/20, tuningInterval=200)
+mymcmc.run(generations=GENS)
+q()

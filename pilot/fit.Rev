@@ -41,7 +41,10 @@ reporting ~ dnBeta(1.0, 1.0)
 moves.append( mvSlide(reporting, delta=0.1, weight=5) )
 moves.append( mvBetaProbability(reporting, delta=2.0, weight=5) )
 
-rec ~ dnFossilRecord(ranges=tr, reporting=reporting)
+# complete=true reads the reported count as exact. Leaving it false stacks the count floor
+# on the thinning, and the two together make the density flat in reporting at count 2 and
+# monotone increasing in it above that, so reporting is driven to 1 by record size alone.
+rec ~ dnFossilRecord(ranges=tr, complete=true, reporting=reporting)
 rec.clamp(taxa)
 
 moves.append( mvFossilTipTimeUniform(tr, origin=origin, weight=taxa.size()) )

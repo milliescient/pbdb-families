@@ -12,8 +12,8 @@ SAMPLE=${3:-$HERE/sample.tsv}
 BURNFRAC=${BURNFRAC:-20}
 PRINTGEN=$((GENS / 2000))
 RB=${RB:-/research/phyloworks/revbayes/projects/cmake/build-reporting/rb}
-OUT=$HERE/output
-AUX=$HERE/aux
+OUT=${OUT:-$HERE/output}
+AUX=${AUX:-$HERE/aux}
 mkdir -p "$OUT" "$AUX"
 : > "$HERE/failures.log"
 

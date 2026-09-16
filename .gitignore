@@ -13,3 +13,5 @@ pilot/aux*/
 pilot/failures.log
 pilot/rerun.out
 pilot/rerun.pgid
+pilot/rerun-complete.out
+pilot/rerun-complete.pgid

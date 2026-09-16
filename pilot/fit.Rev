@@ -1,4 +1,4 @@
-### One PBDB family under dnFBDSP with anagenesis, reporting estimated.
+### One PBDB family under dnFBDSP with anagenesis, every sampled occurrence reported.
 ###
 ### The question is whether lambda_a contracts away from its prior on a real record, so the
 ### prior is deliberately wide and every rate shares it. Contraction is read against RSD.
@@ -35,16 +35,8 @@ moves.append( mvScale(origin, weight=3) )
 tr ~ dnFBDSP(origin=origin, lambda=lambda, mu=mu, psi=psi, rho=0.0, present=PRESENT,
              condition="time", taxa=taxa, lambda_a=lambda_a, extended=false)
 
-# half of PBDB's species are singletons and the occurrence counts are overdispersed, so
-# assuming a complete record would push that misfit into psi, which lambda_a is fitted with
-reporting ~ dnBeta(1.0, 1.0)
-moves.append( mvSlide(reporting, delta=0.1, weight=5) )
-moves.append( mvBetaProbability(reporting, delta=2.0, weight=5) )
-
-# complete=true reads the reported count as exact. Leaving it false stacks the count floor
-# on the thinning, and the two together make the density flat in reporting at count 2 and
-# monotone increasing in it above that, so reporting is driven to 1 by record size alone.
-rec ~ dnFossilRecord(ranges=tr, complete=true, reporting=reporting)
+# an estimated reporting rate sat near 1 and left lambda_a unchanged, so the record is taken as complete
+rec ~ dnFossilRecord(ranges=tr, complete=true)
 rec.clamp(taxa)
 
 moves.append( mvFossilTipTimeUniform(tr, origin=origin, weight=taxa.size()) )
